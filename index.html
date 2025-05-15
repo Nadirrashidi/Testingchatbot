@@ -918,7 +918,7 @@
   displayMessage(botResponse, "bot");
 
   inputField.value = "";
-  saveChatToLocalStorage();
+  saveChat(); // Save after each interaction
 }
 
 function displayMessage(message, sender) {
@@ -945,32 +945,53 @@ function getBotResponse(message) {
 function clearChat() {
   document.getElementById("chatbox").innerHTML = "";
   document.getElementById("input").value = "";
-  localStorage.removeItem("chatHistory");
+  try {
+    localStorage.removeItem("chatHistory");
+    sessionStorage.removeItem("chatHistory");
+  } catch (e) {
+    console.warn("Unable to clear chat storage:", e);
+  }
 }
 
-// ✅ Save current chat to localStorage
-function saveChatToLocalStorage() {
-  const chatbox = document.getElementById("chatbox");
-  localStorage.setItem("chatHistory", chatbox.innerHTML);
+// 🔐 Save chat to both localStorage and sessionStorage for persistence
+function saveChat() {
+  const chatbox = document.getElementById("chatbox").innerHTML;
+  try {
+    localStorage.setItem("chatHistory", chatbox);
+    sessionStorage.setItem("chatHistory", chatbox);
+  } catch (e) {
+    console.warn("Unable to save chat:", e);
+  }
 }
 
-// ✅ Load chat history from localStorage when page loads
-window.addEventListener("load", function () {
+// 🔄 Load chat history from localStorage or sessionStorage
+function loadChat() {
   const chatbox = document.getElementById("chatbox");
-  const savedChat = localStorage.getItem("chatHistory");
+  let savedChat = "";
+  try {
+    savedChat = localStorage.getItem("chatHistory") || sessionStorage.getItem("chatHistory");
+  } catch (e) {
+    console.warn("Unable to load chat history:", e);
+  }
   if (savedChat) {
     chatbox.innerHTML = savedChat;
     chatbox.scrollTop = chatbox.scrollHeight;
   }
-});
+}
 
-// ✅ Enable sending message on Enter key
+// 🚀 Initialize chat on page load
+window.addEventListener("load", loadChat);
+
+// ⌨️ Handle Enter key to send message
 document.getElementById("input").addEventListener("keydown", function (event) {
   if (event.key === "Enter") {
     event.preventDefault();
     sendMessage();
   }
 });
+
+
+
 
   </script>
 </body>
