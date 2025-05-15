@@ -907,7 +907,7 @@
   }
  ];
 
-   function sendMessage() {
+  function sendMessage() {
   const inputField = document.getElementById("input");
   const userMessage = inputField.value.trim();
   if (!userMessage) return;
@@ -918,7 +918,7 @@
   displayMessage(botResponse, "bot");
 
   inputField.value = "";
-  saveChat(); // Save after each interaction
+  saveChat(); // Save to parent storage
 }
 
 function displayMessage(message, sender) {
@@ -946,49 +946,45 @@ function clearChat() {
   document.getElementById("chatbox").innerHTML = "";
   document.getElementById("input").value = "";
   try {
-    localStorage.removeItem("chatHistory");
-    sessionStorage.removeItem("chatHistory");
+    window.parent.localStorage.removeItem("chatHistory");
   } catch (e) {
-    console.warn("Unable to clear chat storage:", e);
+    console.warn("Unable to clear parent storage:", e);
   }
 }
 
-// 🔐 Save chat to both localStorage and sessionStorage for persistence
 function saveChat() {
-  const chatbox = document.getElementById("chatbox").innerHTML;
   try {
-    localStorage.setItem("chatHistory", chatbox);
-    sessionStorage.setItem("chatHistory", chatbox);
+    const chatboxHTML = document.getElementById("chatbox").innerHTML;
+    window.parent.localStorage.setItem("chatHistory", chatboxHTML);
   } catch (e) {
-    console.warn("Unable to save chat:", e);
+    console.warn("Unable to save to parent storage:", e);
   }
 }
 
-// 🔄 Load chat history from localStorage or sessionStorage
 function loadChat() {
-  const chatbox = document.getElementById("chatbox");
-  let savedChat = "";
   try {
-    savedChat = localStorage.getItem("chatHistory") || sessionStorage.getItem("chatHistory");
+    const chatbox = document.getElementById("chatbox");
+    const saved = window.parent.localStorage.getItem("chatHistory");
+    if (saved) {
+      chatbox.innerHTML = saved;
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
   } catch (e) {
-    console.warn("Unable to load chat history:", e);
-  }
-  if (savedChat) {
-    chatbox.innerHTML = savedChat;
-    chatbox.scrollTop = chatbox.scrollHeight;
+    console.warn("Unable to load from parent storage:", e);
   }
 }
 
-// 🚀 Initialize chat on page load
+// Load chat on page load
 window.addEventListener("load", loadChat);
 
-// ⌨️ Handle Enter key to send message
+// Send on Enter key
 document.getElementById("input").addEventListener("keydown", function (event) {
   if (event.key === "Enter") {
     event.preventDefault();
     sendMessage();
   }
 });
+
 
 
 
